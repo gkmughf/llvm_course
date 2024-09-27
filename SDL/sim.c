@@ -20,8 +20,12 @@ void simInit() {
   simPutPixel(0, 0, 0);
   simFlush();
 }
-void simClear() {
-  SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
+void simClear(int argb) {
+  Uint8 a = argb >> 24;
+  Uint8 r = (argb >> 16) & 0xFF;
+  Uint8 g = (argb >> 8) & 0xFF;
+  Uint8 b = argb & 0xFF;
+  SDL_SetRenderDrawColor(Renderer, r, g, b, a);
   SDL_RenderClear(Renderer);
 }
 

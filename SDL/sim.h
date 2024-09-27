@@ -5,7 +5,7 @@
 void simFlush();
 void simPutPixel(int x, int y, int argb);
 int simRand();
-void simClear();
+void simClear(int argb);
 #endif
 
 extern void simInit();
