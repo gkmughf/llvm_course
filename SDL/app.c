@@ -15,15 +15,13 @@
 #define BH_X (SIM_Y_SIZE / 2 * FIXED_ONE)
 #define BH_Y (SIM_X_SIZE / 2 * FIXED_ONE)
 
-static inline int fixed_mul(int a, int b) {
+int fixed_mul(int a, int b) {
   return ((long long)a * (long long)b) >> FIXED_SHIFT;
 }
 
-static inline int fixed_div(int a, int b) {
-  return ((long long)a << FIXED_SHIFT) / b;
-}
+int fixed_div(int a, int b) { return ((long long)a << FIXED_SHIFT) / b; }
 
-static inline int fixed_sqrt(int a) {
+int fixed_sqrt(int a) {
   if (a <= 0)
     return 0;
   int res = 0;
@@ -203,7 +201,7 @@ void display_particles(struct particles_t *particles) {
     int speed_colour = fixed_mul(
         fixed_div(get_velocity_sq(i, particles), 20000 * FIXED_ONE), 255);
     draw_line(screen_x, screen_y, prev_screen_x, prev_screen_y,
-              0xFFFFFFFF - (speed_colour << 8 | (speed_colour << 8)));
+              0xFFFFFFFF - (speed_colour << 9 | (speed_colour << 3)));
   }
 
   simFlush();
