@@ -1,9 +1,10 @@
 #include "sim.h"
+#include <stdio.h>
 
-int main(void)
-{
-    simInit();
-    app();
-    simExit();
-    return 0;
+int main(void) {
+  printf("start");
+  simInit();
+  app();
+  simExit();
+  return 0;
 }

@@ -1,0 +1,2 @@
+./BH.out > track.stat
+

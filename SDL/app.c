@@ -1,13 +1,13 @@
 #include "sim.h"
 
-#define SLOW 30
+#define SLOW 50
 #define BACKGROUND 0xFF000000
 
-#define MAX_PARTICLES 8000
-#define MAX_SPAWN_RADIUS 128
+#define MAX_PARTICLES 1000
+#define MAX_SPAWN_RADIUS 512
 #define MAX_SPEED 100
 
-#define FIXED_SHIFT 14
+#define FIXED_SHIFT 10
 #define FIXED_ONE (1 << FIXED_SHIFT)
 
 #define G 5000
@@ -122,7 +122,7 @@ void init_particle(int i, struct particles_t *particles) {
   } else {
     int norm_dx = fixed_div(dx, distance);
     int norm_dy = fixed_div(dy, distance);
-    int orbital_speed = fixed_sqrt(fixed_div(G * FIXED_ONE, distance));
+    int orbital_speed = fixed_sqrt(fixed_div((G / 2) * FIXED_ONE, distance));
     particles->v[i][0] = fixed_mul(-norm_dy, orbital_speed);
     particles->v[i][1] = fixed_mul(norm_dx, orbital_speed);
   }
