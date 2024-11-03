@@ -1,4 +1,4 @@
-#include "sim.h"
+#include "../SDL/sim.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 
 #include "llvm/ExecutionEngine/GenericValue.h"
@@ -255,8 +255,10 @@ int main() {
     Value *v3 = draw_lineFunc->getArg(3);
     Value *v4 = draw_lineFunc->getArg(4);
     BasicBlock *v5 = BasicBlock::Create(context, "", draw_lineFunc);
-    BasicBlock *v19 = BasicBlock::Create(context, "", draw_lineFunc);
-    BasicBlock *v22 = BasicBlock::Create(context, "", draw_lineFunc);
+    BasicBlock *v16 = BasicBlock::Create(context, "", draw_lineFunc);
+    BasicBlock *v25 = BasicBlock::Create(context, "", draw_lineFunc);
+    BasicBlock *v26 = BasicBlock::Create(context, "", draw_lineFunc);
+    BasicBlock *v30 = BasicBlock::Create(context, "", draw_lineFunc);
     BasicBlock *v42 = BasicBlock::Create(context, "", draw_lineFunc);
 
 
@@ -271,57 +273,61 @@ int main() {
     Value *v11 = builder.CreateSelect(v10, builder.getInt32(1), builder.getInt32(-1));
     Value *v12 = builder.CreateICmp(static_cast<CmpInst::Predicate>(40), v1, v3);
     Value *v13 = builder.CreateSelect(v12, builder.getInt32(1), builder.getInt32(-1));
-    Value *v14 = builder.CreateAnd(v0, builder.getInt32(511));
-    Value *v15 = builder.CreateAnd(v1, builder.getInt32(255));
+    Value *v14 = builder.CreateSub(v7, v9);
+    Value *v15 = builder.CreateSub(builder.getInt32(0), v9);
+      builder.CreateBr(v16);
+
+
+    builder.SetInsertPoint(v16);
+    PHINode *v17 = builder.CreatePHI(Type::getInt32Ty(context), 2);
+    PHINode *v18 = builder.CreatePHI(Type::getInt32Ty(context), 2);
+    PHINode *v19 = builder.CreatePHI(Type::getInt32Ty(context), 2);
+    Value *v20 = builder.CreateICmp(static_cast<CmpInst::Predicate>(36), v19, builder.getInt32(512));
+    Value *v21 = builder.CreateICmp(static_cast<CmpInst::Predicate>(38), v17, builder.getInt32(-1));
+    Value *v22 = builder.CreateSelect(v20, v21, builder.getInt1(false));
+    Value *v23 = builder.CreateICmp(static_cast<CmpInst::Predicate>(40), v17, builder.getInt32(512));
+    Value *v24 = builder.CreateSelect(v22, v23, builder.getInt1(false));
+    builder.CreateCondBr(v24, v25, v26);
+
+
+    builder.SetInsertPoint(v25);
     // Вызов функции: simPutPixel
-    builder.CreateCall(simPutPixelFunc, {v14, v15, v4, });
-    Value *v16 = builder.CreateICmp(static_cast<CmpInst::Predicate>(32), v0, v2);
-    Value *v17 = builder.CreateICmp(static_cast<CmpInst::Predicate>(32), v1, v3);
-    Value *v18 = builder.CreateAnd(v17, v16);
-    builder.CreateCondBr(v18, v42, v19);
+    builder.CreateCall(simPutPixelFunc, {v19, v17, v4, });
+      builder.CreateBr(v26);
 
 
-    builder.SetInsertPoint(v19);
-    Value *v20 = builder.CreateSub(v7, v9);
-    Value *v21 = builder.CreateSub(builder.getInt32(0), v9);
-      builder.CreateBr(v22);
+    builder.SetInsertPoint(v26);
+    Value *v27 = builder.CreateICmp(static_cast<CmpInst::Predicate>(32), v19, v2);
+    Value *v28 = builder.CreateICmp(static_cast<CmpInst::Predicate>(32), v17, v3);
+    Value *v29 = builder.CreateSelect(v27, v28, builder.getInt1(false));
+    builder.CreateCondBr(v29, v42, v30);
 
 
-    builder.SetInsertPoint(v22);
-    PHINode *v23 = builder.CreatePHI(Type::getInt32Ty(context), 2);
-    PHINode *v24 = builder.CreatePHI(Type::getInt32Ty(context), 2);
-    PHINode *v25 = builder.CreatePHI(Type::getInt32Ty(context), 2);
-    Value *v26 = builder.CreateShl(v24, builder.getInt32(1));
-    Value *v27 = builder.CreateICmp(static_cast<CmpInst::Predicate>(38), v26, v21);
-    Value *v28 = builder.CreateSelect(v27, v9, builder.getInt32(0));
-    Value *v29 = builder.CreateSub(v24, v28);
-    Value *v30 = builder.CreateSelect(v27, v11, builder.getInt32(0));
-    Value *v31 = builder.CreateAdd(v30, v23);
-    Value *v32 = builder.CreateICmp(static_cast<CmpInst::Predicate>(40), v26, v7);
-    Value *v33 = builder.CreateSelect(v32, v13, builder.getInt32(0));
-    Value *v34 = builder.CreateAdd(v33, v25);
-    Value *v35 = builder.CreateSelect(v32, v7, builder.getInt32(0));
-    Value *v36 = builder.CreateAdd(v29, v35);
-    Value *v37 = builder.CreateAnd(v31, builder.getInt32(511));
-    Value *v38 = builder.CreateAnd(v34, builder.getInt32(255));
-    // Вызов функции: simPutPixel
-    builder.CreateCall(simPutPixelFunc, {v37, v38, v4, });
-    Value *v39 = builder.CreateICmp(static_cast<CmpInst::Predicate>(32), v31, v2);
-    Value *v40 = builder.CreateICmp(static_cast<CmpInst::Predicate>(32), v34, v3);
-    Value *v41 = builder.CreateAnd(v40, v39);
-    builder.CreateCondBr(v41, v42, v22);
+    builder.SetInsertPoint(v30);
+    Value *v31 = builder.CreateShl(v18, builder.getInt32(1));
+    Value *v32 = builder.CreateICmp(static_cast<CmpInst::Predicate>(38), v31, v15);
+    Value *v33 = builder.CreateSelect(v32, v9, builder.getInt32(0));
+    Value *v34 = builder.CreateSub(v18, v33);
+    Value *v35 = builder.CreateSelect(v32, v11, builder.getInt32(0));
+    Value *v36 = builder.CreateAdd(v35, v19);
+    Value *v37 = builder.CreateICmp(static_cast<CmpInst::Predicate>(40), v31, v7);
+    Value *v38 = builder.CreateSelect(v37, v13, builder.getInt32(0));
+    Value *v39 = builder.CreateAdd(v38, v17);
+    Value *v40 = builder.CreateSelect(v37, v7, builder.getInt32(0));
+    Value *v41 = builder.CreateAdd(v34, v40);
+      builder.CreateBr(v16);
 
 
     builder.SetInsertPoint(v42);
     builder.CreateRetVoid();
 
 
-    v23->addIncoming(v0, v19);
-    v23->addIncoming(v31, v22);
-    v24->addIncoming(v20, v19);
-    v24->addIncoming(v36, v22);
-    v25->addIncoming(v1, v19);
-    v25->addIncoming(v34, v22);
+    v17->addIncoming(v1, v5);
+    v17->addIncoming(v39, v30);
+    v18->addIncoming(v14, v5);
+    v18->addIncoming(v41, v30);
+    v19->addIncoming(v0, v5);
+    v19->addIncoming(v36, v30);
   }
   
   
@@ -453,12 +459,12 @@ int main() {
     builder.CreateAlignedStore(v9, v10, MaybeAlign(4));
     // Вызов функции: simRand
     Value *v11 = builder.CreateCall(simRandFunc, {});
-    Value *v12 = builder.CreateSRem(v11, builder.getInt32(262144));
+    Value *v12 = builder.CreateSRem(v11, builder.getInt32(524288));
     Value *v13 = GetElementPtrInst::Create(ArrayType::get(Type::getInt32Ty(context), 2),v1, {v6, builder.getInt64(1), });
     builder.Insert(v13);
     builder.CreateAlignedStore(v12, v13, MaybeAlign(4));
     Value *v14 = builder.CreateAlignedLoad(Type::getInt32Ty(context), v10, MaybeAlign(4));
-    Value *v15 = builder.CreateAdd(v14, builder.getInt32(-131072));
+    Value *v15 = builder.CreateAdd(v14, builder.getInt32(-262144));
     Value *v16 = builder.CreateAdd(v12, builder.getInt32(-262144));
     Value *v17 = builder.CreateSExt(v15, Type::getInt64Ty(context));
     Value *v18 = builder.CreateMul(v17, v17);
@@ -812,7 +818,7 @@ int main() {
     Value *v21 = GetElementPtrInst::Create(ArrayType::get(Type::getInt32Ty(context), 2),v0, {v16, });
     builder.Insert(v21);
     Value *v22 = builder.CreateAlignedLoad(Type::getInt32Ty(context), v21, MaybeAlign(4));
-    Value *v23 = builder.CreateSub(builder.getInt32(131072), v22);
+    Value *v23 = builder.CreateSub(builder.getInt32(262144), v22);
     Value *v24 = GetElementPtrInst::Create(ArrayType::get(Type::getInt32Ty(context), 2),v0, {v16, builder.getInt64(1), });
     builder.Insert(v24);
     Value *v25 = builder.CreateAlignedLoad(Type::getInt32Ty(context), v24, MaybeAlign(4));
@@ -1013,8 +1019,10 @@ int main() {
     BasicBlock *v4 = BasicBlock::Create(context, "", display_particlesFunc);
     BasicBlock *v5 = BasicBlock::Create(context, "", display_particlesFunc);
     BasicBlock *v10 = BasicBlock::Create(context, "", display_particlesFunc);
-    BasicBlock *v61 = BasicBlock::Create(context, "", display_particlesFunc);
-    BasicBlock *v64 = BasicBlock::Create(context, "", display_particlesFunc);
+    BasicBlock *v58 = BasicBlock::Create(context, "", display_particlesFunc);
+    BasicBlock *v67 = BasicBlock::Create(context, "", display_particlesFunc);
+    BasicBlock *v68 = BasicBlock::Create(context, "", display_particlesFunc);
+    BasicBlock *v72 = BasicBlock::Create(context, "", display_particlesFunc);
     BasicBlock *v84 = BasicBlock::Create(context, "", display_particlesFunc);
 
 
@@ -1093,45 +1101,49 @@ int main() {
     Value *v53 = builder.CreateSelect(v52, builder.getInt32(1), builder.getInt32(-1));
     Value *v54 = builder.CreateICmp(static_cast<CmpInst::Predicate>(40), v16, v26);
     Value *v55 = builder.CreateSelect(v54, builder.getInt32(1), builder.getInt32(-1));
-    Value *v56 = builder.CreateAnd(v13, builder.getInt32(511));
-    Value *v57 = builder.CreateAnd(v16, builder.getInt32(255));
+    Value *v56 = builder.CreateSub(v49, v51);
+    Value *v57 = builder.CreateSub(builder.getInt32(0), v51);
+      builder.CreateBr(v58);
+
+
+    builder.SetInsertPoint(v58);
+    PHINode *v59 = builder.CreatePHI(Type::getInt32Ty(context), 2);
+    PHINode *v60 = builder.CreatePHI(Type::getInt32Ty(context), 2);
+    PHINode *v61 = builder.CreatePHI(Type::getInt32Ty(context), 2);
+    Value *v62 = builder.CreateICmp(static_cast<CmpInst::Predicate>(36), v61, builder.getInt32(512));
+    Value *v63 = builder.CreateICmp(static_cast<CmpInst::Predicate>(38), v59, builder.getInt32(-1));
+    Value *v64 = builder.CreateSelect(v62, v63, builder.getInt1(false));
+    Value *v65 = builder.CreateICmp(static_cast<CmpInst::Predicate>(40), v59, builder.getInt32(512));
+    Value *v66 = builder.CreateSelect(v64, v65, builder.getInt1(false));
+    builder.CreateCondBr(v66, v67, v68);
+
+
+    builder.SetInsertPoint(v67);
     // Вызов функции: simPutPixel
-    builder.CreateCall(simPutPixelFunc, {v56, v57, v47, });
-    Value *v58 = builder.CreateICmp(static_cast<CmpInst::Predicate>(32), v13, v21);
-    Value *v59 = builder.CreateICmp(static_cast<CmpInst::Predicate>(32), v16, v26);
-    Value *v60 = builder.CreateAnd(v58, v59);
-    builder.CreateCondBr(v60, v84, v61);
+    builder.CreateCall(simPutPixelFunc, {v61, v59, v47, });
+      builder.CreateBr(v68);
 
 
-    builder.SetInsertPoint(v61);
-    Value *v62 = builder.CreateSub(v49, v51);
-    Value *v63 = builder.CreateSub(builder.getInt32(0), v51);
-      builder.CreateBr(v64);
+    builder.SetInsertPoint(v68);
+    Value *v69 = builder.CreateICmp(static_cast<CmpInst::Predicate>(32), v61, v21);
+    Value *v70 = builder.CreateICmp(static_cast<CmpInst::Predicate>(32), v59, v26);
+    Value *v71 = builder.CreateSelect(v69, v70, builder.getInt1(false));
+    builder.CreateCondBr(v71, v84, v72);
 
 
-    builder.SetInsertPoint(v64);
-    PHINode *v65 = builder.CreatePHI(Type::getInt32Ty(context), 2);
-    PHINode *v66 = builder.CreatePHI(Type::getInt32Ty(context), 2);
-    PHINode *v67 = builder.CreatePHI(Type::getInt32Ty(context), 2);
-    Value *v68 = builder.CreateShl(v66, builder.getInt32(1));
-    Value *v69 = builder.CreateICmp(static_cast<CmpInst::Predicate>(38), v68, v63);
-    Value *v70 = builder.CreateSelect(v69, v51, builder.getInt32(0));
-    Value *v71 = builder.CreateSub(v66, v70);
-    Value *v72 = builder.CreateSelect(v69, v53, builder.getInt32(0));
-    Value *v73 = builder.CreateAdd(v72, v65);
-    Value *v74 = builder.CreateICmp(static_cast<CmpInst::Predicate>(40), v68, v49);
-    Value *v75 = builder.CreateSelect(v74, v55, builder.getInt32(0));
-    Value *v76 = builder.CreateAdd(v75, v67);
-    Value *v77 = builder.CreateSelect(v74, v49, builder.getInt32(0));
-    Value *v78 = builder.CreateAdd(v71, v77);
-    Value *v79 = builder.CreateAnd(v73, builder.getInt32(511));
-    Value *v80 = builder.CreateAnd(v76, builder.getInt32(255));
-    // Вызов функции: simPutPixel
-    builder.CreateCall(simPutPixelFunc, {v79, v80, v47, });
-    Value *v81 = builder.CreateICmp(static_cast<CmpInst::Predicate>(32), v73, v21);
-    Value *v82 = builder.CreateICmp(static_cast<CmpInst::Predicate>(32), v76, v26);
-    Value *v83 = builder.CreateAnd(v82, v81);
-    builder.CreateCondBr(v83, v84, v64);
+    builder.SetInsertPoint(v72);
+    Value *v73 = builder.CreateShl(v60, builder.getInt32(1));
+    Value *v74 = builder.CreateICmp(static_cast<CmpInst::Predicate>(38), v73, v57);
+    Value *v75 = builder.CreateSelect(v74, v51, builder.getInt32(0));
+    Value *v76 = builder.CreateSub(v60, v75);
+    Value *v77 = builder.CreateSelect(v74, v53, builder.getInt32(0));
+    Value *v78 = builder.CreateAdd(v77, v61);
+    Value *v79 = builder.CreateICmp(static_cast<CmpInst::Predicate>(40), v73, v49);
+    Value *v80 = builder.CreateSelect(v79, v55, builder.getInt32(0));
+    Value *v81 = builder.CreateAdd(v80, v59);
+    Value *v82 = builder.CreateSelect(v79, v49, builder.getInt32(0));
+    Value *v83 = builder.CreateAdd(v76, v82);
+      builder.CreateBr(v58);
 
 
     builder.SetInsertPoint(v84);
@@ -1142,12 +1154,12 @@ int main() {
 
     v6->addIncoming(builder.getInt64(0), v3);
     v6->addIncoming(v85, v84);
-    v65->addIncoming(v13, v61);
-    v65->addIncoming(v73, v64);
-    v66->addIncoming(v62, v61);
-    v66->addIncoming(v78, v64);
-    v67->addIncoming(v16, v61);
-    v67->addIncoming(v76, v64);
+    v59->addIncoming(v16, v10);
+    v59->addIncoming(v81, v72);
+    v60->addIncoming(v56, v10);
+    v60->addIncoming(v83, v72);
+    v61->addIncoming(v13, v10);
+    v61->addIncoming(v78, v72);
   }
   
   

@@ -71,7 +71,7 @@ struct gen_IR_gen_pass : public PassInfoMixin<gen_IR_gen_pass> {
     std::string head;
     std::string body;
     std::string tail;
-    addLine(0, head, "#include \"sim.h\"");
+    addLine(0, head, "#include \"../SDL/sim.h\"");
     addLine(0, head, "#include \"llvm/ExecutionEngine/ExecutionEngine.h\"\n");
     addLine(0, head, "#include \"llvm/ExecutionEngine/GenericValue.h\"\n");
     addLine(0, head, "#include \"llvm/IR/IRBuilder.h\"");
