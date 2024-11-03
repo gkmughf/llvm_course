@@ -89,74 +89,79 @@ void draw_line(int x0, int y0, int x1, int y1, int color) {
   }
 }
 
-struct particles_t {
-  int p[MAX_PARTICLES][2];
-  int v[MAX_PARTICLES][2];
-  int active[MAX_PARTICLES];
-  int count;
-};
+/* struct particles_t { */
+/*   int p[MAX_PARTICLES][2]; */
+/*   int v[MAX_PARTICLES][2]; */
+/*   int active[MAX_PARTICLES]; */
+/*   int count; */
+/* }; */
 
-void swap(int i, int j, struct particles_t *particles) {
-  swap_i(&particles->active[i], &particles->active[j]);
-  swap_i(&particles->v[i][0], &particles->v[j][0]);
-  swap_i(&particles->v[i][1], &particles->v[j][1]);
-  swap_i(&particles->p[i][0], &particles->p[j][0]);
-  swap_i(&particles->p[i][1], &particles->p[j][1]);
+void swap(int i, int j, int p[MAX_PARTICLES][2], int v[MAX_PARTICLES][2],
+          int active[MAX_PARTICLES], int *count) {
+  swap_i(&active[i], &active[j]);
+  swap_i(&v[i][0], &v[j][0]);
+  swap_i(&v[i][1], &v[j][1]);
+  swap_i(&p[i][0], &p[j][0]);
+  swap_i(&p[i][1], &p[j][1]);
 }
 
-void init_particle(int i, struct particles_t *particles) {
-  particles->active[i] = 0;
-  particles->p[i][0] = (simRand() % (SIM_X_SIZE * FIXED_ONE));
-  particles->p[i][1] = (simRand() % (SIM_Y_SIZE * FIXED_ONE));
+void init_particle(int i, int p[MAX_PARTICLES][2], int v[MAX_PARTICLES][2],
+                   int active[MAX_PARTICLES], int *count) {
+  active[i] = 0;
+  p[i][0] = (simRand() % (SIM_X_SIZE * FIXED_ONE));
+  p[i][1] = (simRand() % (SIM_Y_SIZE * FIXED_ONE));
 
-  int dx = particles->p[i][0] - BH_X;
-  int dy = particles->p[i][1] - BH_Y;
+  int dx = p[i][0] - BH_X;
+  int dy = p[i][1] - BH_Y;
   int distance_sq = fixed_mul(dx, dx) + fixed_mul(dy, dy);
   int distance = fixed_sqrt(distance_sq);
 
   if (distance_sq > MAX_SPAWN_RADIUS * MAX_SPAWN_RADIUS * FIXED_ONE)
     return;
   if (distance == 0) {
-    particles->v[i][0] = 0;
-    particles->v[i][1] = 0;
+    v[i][0] = 0;
+    v[i][1] = 0;
   } else {
     int norm_dx = fixed_div(dx, distance);
     int norm_dy = fixed_div(dy, distance);
     int orbital_speed = fixed_sqrt(fixed_div((G / 2) * FIXED_ONE, distance));
-    particles->v[i][0] = fixed_mul(-norm_dy, orbital_speed);
-    particles->v[i][1] = fixed_mul(norm_dx, orbital_speed);
+    v[i][0] = fixed_mul(-norm_dy, orbital_speed);
+    v[i][1] = fixed_mul(norm_dx, orbital_speed);
   }
 
-  particles->active[i] = 1;
-  ++particles->count;
+  active[i] = 1;
+  ++*count;
 }
 
-void delete_particle(int i, struct particles_t *particles) {
-  particles->active[i] = 0;
-  swap(i, --particles->count, particles);
+void delete_particle(int i, int p[MAX_PARTICLES][2], int v[MAX_PARTICLES][2],
+                     int active[MAX_PARTICLES], int *count) {
+  active[i] = 0;
+  swap(i, --*count, p, v, active, count);
 }
 
-void init_particles(struct particles_t *particles) {
+void init_particles(int p[MAX_PARTICLES][2], int v[MAX_PARTICLES][2],
+                    int active[MAX_PARTICLES], int *count) {
   for (int i = 0; i < MAX_PARTICLES; i++) {
-    init_particle(i, particles);
+    init_particle(i, p, v, active, count);
   }
 }
 
-void update_particles(struct particles_t *particles) {
-  for (int i = particles->count; i < MAX_PARTICLES; i++) {
-    init_particle(particles->count, particles);
+void update_particles(int p[MAX_PARTICLES][2], int v[MAX_PARTICLES][2],
+                      int active[MAX_PARTICLES], int *count) {
+  for (int i = *count; i < MAX_PARTICLES; i++) {
+    init_particle(*count, p, v, active, count);
   }
   int dt = fixed_div(FIXED_ONE, SLOW * FIXED_ONE);
   for (int i = 0; i < MAX_PARTICLES; i++) {
-    if (!particles->active[i])
+    if (!active[i])
       continue;
 
-    int dx = -particles->p[i][0] + BH_X;
-    int dy = -particles->p[i][1] + BH_Y;
+    int dx = -p[i][0] + BH_X;
+    int dy = -p[i][1] + BH_Y;
     int distance_sq = fixed_mul(dx, dx) + fixed_mul(dy, dy);
 
     if (distance_sq < fixed_mul(BLACK_HOLE_RADIUS, BLACK_HOLE_RADIUS)) {
-      delete_particle(i, particles);
+      delete_particle(i, p, v, active, count);
       --i;
       continue;
     }
@@ -169,37 +174,36 @@ void update_particles(struct particles_t *particles) {
     int ax = fixed_mul(a, dx);
     int ay = fixed_mul(a, dy);
 
-    particles->v[i][0] = clamp(particles->v[i][0] + fixed_mul(ax, dt),
-                               -MAX_SPEED * FIXED_ONE, MAX_SPEED * FIXED_ONE);
-    particles->v[i][1] = clamp(particles->v[i][1] + fixed_mul(ay, dt),
-                               -MAX_SPEED * FIXED_ONE, MAX_SPEED * FIXED_ONE);
+    v[i][0] = clamp(v[i][0] + fixed_mul(ax, dt), -MAX_SPEED * FIXED_ONE,
+                    MAX_SPEED * FIXED_ONE);
+    v[i][1] = clamp(v[i][1] + fixed_mul(ay, dt), -MAX_SPEED * FIXED_ONE,
+                    MAX_SPEED * FIXED_ONE);
 
-    particles->p[i][0] += fixed_mul(particles->v[i][0], dt);
-    particles->p[i][1] += fixed_mul(particles->v[i][1], dt);
+    p[i][0] += fixed_mul(v[i][0], dt);
+    p[i][1] += fixed_mul(v[i][1], dt);
   }
 }
 
-int get_velocity_sq(int i, struct particles_t *particles) {
-  return fixed_mul(particles->v[i][0], particles->v[i][0]) +
-         fixed_mul(particles->v[i][1], particles->v[i][1]);
+int get_velocity_sq(int i, int p[MAX_PARTICLES][2], int v[MAX_PARTICLES][2],
+                    int active[MAX_PARTICLES]) {
+  return fixed_mul(v[i][0], v[i][0]) + fixed_mul(v[i][1], v[i][1]);
 }
 
-void display_particles(struct particles_t *particles) {
+void display_particles(int p[MAX_PARTICLES][2], int v[MAX_PARTICLES][2],
+                       int active[MAX_PARTICLES]) {
   simClear(BACKGROUND);
 
   for (int i = 0; i < MAX_PARTICLES; i++) {
-    if (!particles->active[i])
+    if (!active[i])
       continue;
 
-    int screen_x = particles->p[i][0] >> FIXED_SHIFT;
-    int screen_y = particles->p[i][1] >> FIXED_SHIFT;
-    int prev_screen_x =
-        (particles->p[i][0] - particles->v[i][0] / 10) >> FIXED_SHIFT;
-    int prev_screen_y =
-        (particles->p[i][1] - particles->v[i][1] / 10) >> FIXED_SHIFT;
+    int screen_x = p[i][0] >> FIXED_SHIFT;
+    int screen_y = p[i][1] >> FIXED_SHIFT;
+    int prev_screen_x = (p[i][0] - v[i][0] / 10) >> FIXED_SHIFT;
+    int prev_screen_y = (p[i][1] - v[i][1] / 10) >> FIXED_SHIFT;
 
     int speed_colour = fixed_mul(
-        fixed_div(get_velocity_sq(i, particles), 20000 * FIXED_ONE), 255);
+        fixed_div(get_velocity_sq(i, p, v, active), 20000 * FIXED_ONE), 255);
     draw_line(screen_x, screen_y, prev_screen_x, prev_screen_y,
               0xFFFFFFFF - (speed_colour << 9 | (speed_colour << 3)));
   }
@@ -208,11 +212,13 @@ void display_particles(struct particles_t *particles) {
 }
 
 void app() {
-  struct particles_t particles;
-  particles.count = 0;
-  init_particles(&particles);
+  int p[MAX_PARTICLES][2];
+  int v[MAX_PARTICLES][2];
+  int active[MAX_PARTICLES];
+  int count = 0;
+  init_particles(p, v, active, &count);
   while (1) {
-    update_particles(&particles);
-    display_particles(&particles);
+    update_particles(p, v, active, &count);
+    display_particles(p, v, active);
   }
 }
