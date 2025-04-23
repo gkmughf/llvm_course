@@ -63,20 +63,7 @@ void simPutPixel(int x, int y, int argb) {
   Ticks = SDL_GetTicks();
 }
 
-struct {
-  uint x, y, z, w;
-} R_STATE;
-uint TausStep(uint z, int S1, int S2, int S3, uint M) {
-  uint b = (((z << S1) ^ z) >> S2);
-  return (((z & M) << S3) ^ b);
-}
-
-uint LCGStep(uint z, uint A, uint C) { return (A * z + C); }
 
 int simRand() {
-  R_STATE.x = TausStep(R_STATE.x, 13, 19, 12, (uint)(4294967294));
-  R_STATE.y = TausStep(R_STATE.y, 2, 25, 4, (uint)(4294967288));
-  R_STATE.z = TausStep(R_STATE.z, 3, 11, 17, (uint)(4294967280));
-  R_STATE.w = LCGStep(R_STATE.w, (uint)(1664525), (uint)(1013904223));
-  return (R_STATE.x ^ R_STATE.y ^ R_STATE.z ^ R_STATE.w) * 1000;
+  return rand();
 }
