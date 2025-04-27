@@ -1,63 +1,76 @@
 #include "sim.h"
 
-
 #define PIXEL_SIZE 4
 #define FIELD_SIZE (ALL / PIXEL_SIZE / PIXEL_SIZE)
 #define FIELD_X_SIZE (SIM_X_SIZE / PIXEL_SIZE)
 #define FIELD_Y_SIZE (SIM_Y_SIZE / PIXEL_SIZE)
 
-#define WIRE      1
-#define HEAD      2
-#define TAIL      3
-
 #define BACKGROUND 0xFF000000
-#define COLOR_WIRE  0xFF000000
-#define COLOR_HEAD  0xFFFF00FF
-#define COLOR_TAIL  0xFF00FFFF
 
 
-
-int count_heads(int f[FIELD_SIZE], int y, int x, int type) {
-    int cnt = 0;
-    for (int dy = -1; dy <= 1; dy++) {
-        for (int dx = -1; dx <= 1; dx++) {
-            if (dy == 0 && dx == 0) continue;
-            int ny = y + dy, nx = x + dx;
-            if (ny <= 0 || ny > FIELD_Y_SIZE || nx <= 0 || nx > FIELD_X_SIZE) continue;
-            if (f[ny * FIELD_X_SIZE + nx] == type) cnt++;
-        }
-    }
-    return cnt;
+int clamp(int val, int min, int max) {
+  if (val > max) return max;
+  if (val < min) return min;
+  return val;
 }
 
+int activation(int x) {
+  return clamp(x, 0, 255);
+}
 
-void field_update(int f[FIELD_SIZE]) {
+void gen_mask(int m[9]) {
+  int r = simRand();
+  int rn = 0;  
+  for (int i = 0; i < 9; ++i) {
+    if (rn == 4) {
+      r = simRand();
+      rn = 0;
+    }
+    m[i] = ((r >> rn) & 7) - 4;
+    ++rn;
+  }
+}
+
+int get_cell_torus(int f[FIELD_SIZE], int x, int y) {
+  if (x >= FIELD_X_SIZE)
+    x = x - FIELD_X_SIZE;
+  if (x < 0)
+    x = FIELD_X_SIZE + x;
+
+  if (y >= FIELD_Y_SIZE)
+    y = y - FIELD_Y_SIZE;
+  if (y < 0)
+    y = FIELD_Y_SIZE + y;
+
+  return f[y * FIELD_X_SIZE + x];
+}
+
+void field_update(int f[FIELD_SIZE], int mask[9]) {
   int new_f[FIELD_SIZE];
 
   int i = 0;
   for (int y = 0; y < FIELD_Y_SIZE; y++) {
     for (int x = 0; x < FIELD_X_SIZE; x++) {
-      int s = f[i];
-      switch (s) {
-      case WIRE: {
-	int heads = count_heads(f, y, x, HEAD);
-	new_f[i] = (heads == 1 || heads == 2) ? HEAD : WIRE;
-	break;
+      int m = 0;
+      new_f[i] = 0;
+      for (int dy = -1; dy <= 1; ++dy) {
+	for (int dx = -1; dx <= 1; ++dx) {
+	  new_f[i] += mask[m] * get_cell_torus(f, x + dx, y + dy);
+	  ++m;
+	}
       }
-      case HEAD:
-	new_f[i] = TAIL;
-	break;
-      case TAIL:
-	new_f[i] = WIRE;
-	break;
-      }
+      new_f[i] = activation(new_f[i]);
       ++i;
     }
   }
 
+  int sum = 0;
   for (int i = 0; i < FIELD_SIZE; ++i) {
     f[i] = new_f[i];
+    sum += f[i];
   }
+  if (sum == 0)
+    f[0] = 64;
 }
 
 void put_pixel(int x, int y, int color) {
@@ -74,14 +87,7 @@ void field_display(int f[FIELD_SIZE]) {
   int i = 0;
   for (int y = 0; y < SIM_Y_SIZE; y += PIXEL_SIZE) {
     for (int x = 0; x < SIM_X_SIZE; x += PIXEL_SIZE) {
-      int color;
-      switch (f[i]) {
-      case WIRE:  color = COLOR_WIRE;  break;
-      case HEAD:  color = COLOR_HEAD;  break;
-      case TAIL:  color = COLOR_TAIL;  break;
-      default:    color = COLOR_WIRE; break;
-      }
-      put_pixel(x, y, color);
+      put_pixel(x, y, 0xFF000000 + 0x00010101 * f[i]);
       ++i;
     }
   }
@@ -92,14 +98,9 @@ void field_display(int f[FIELD_SIZE]) {
 
 void field_init(int f[FIELD_SIZE]) {
   for (int i = 0; i < FIELD_SIZE; ++i) {
-    f[i] = WIRE;
+    f[i] = 0;
   }
-  int c = FIELD_SIZE / 2 + FIELD_X_SIZE / 2;
-  
-  for (int dx = -10; dx <= 10; ++dx) {
-    f[c + dx] = WIRE;
-  }
-  f[c] = HEAD;
+  f[FIELD_SIZE / 2 + 64] = 64;
 }
 
 
@@ -107,8 +108,14 @@ void field_init(int f[FIELD_SIZE]) {
 void app() {
   int field[FIELD_SIZE];
   field_init(field);
-  while (1) {
+
+  int mask[9];
+  gen_mask(mask);
+  for (int i = 0;; ++i) {
+    if (i % 10 == 0) {
+      gen_mask(mask);
+    }
     field_display(field);
-    field_update(field);
+    field_update(field, mask);
   }
 }
