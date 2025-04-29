@@ -1,10 +1,10 @@
-#include "sim.h"
+#include "gfv.h"
 #include <stdio.h>
 
 int main(void) {
   printf("start");
-  simInit();
+  gfvInit();
   app();
-  simExit();
+  gfvExit();
   return 0;
 }

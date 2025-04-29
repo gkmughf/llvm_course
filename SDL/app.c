@@ -1,9 +1,9 @@
-#include "sim.h"
+#include "gfv.h"
 
 #define PIXEL_SIZE 4
 #define FIELD_SIZE (ALL / PIXEL_SIZE / PIXEL_SIZE)
-#define FIELD_X_SIZE (SIM_X_SIZE / PIXEL_SIZE)
-#define FIELD_Y_SIZE (SIM_Y_SIZE / PIXEL_SIZE)
+#define FIELD_X_SIZE (GFV_X_SIZE / PIXEL_SIZE)
+#define FIELD_Y_SIZE (GFV_Y_SIZE / PIXEL_SIZE)
 
 #define BACKGROUND 0xFF000000
 
@@ -19,11 +19,11 @@ int activation(int x) {
 }
 
 void gen_mask(int m[9]) {
-  int r = simRand();
+  int r = gfvRand();
   int rn = 0;  
   for (int i = 0; i < 9; ++i) {
     if (rn == 4) {
-      r = simRand();
+      r = gfvRand();
       rn = 0;
     }
     m[i] = ((r >> rn) & 7) - 4;
@@ -76,23 +76,23 @@ void field_update(int f[FIELD_SIZE], int mask[9]) {
 void put_pixel(int x, int y, int color) {
   for(int py = 0; py < PIXEL_SIZE; ++py) {
     for (int px = 0; px < PIXEL_SIZE; ++px) {
-      simPutPixel(x + px, y + py, color);
+      gfvPutPixel(x + px, y + py, color);
     }
   }
 }
 
 void field_display(int f[FIELD_SIZE]) {
-  simClear(BACKGROUND);
+  gfvClear(BACKGROUND);
 
   int i = 0;
-  for (int y = 0; y < SIM_Y_SIZE; y += PIXEL_SIZE) {
-    for (int x = 0; x < SIM_X_SIZE; x += PIXEL_SIZE) {
+  for (int y = 0; y < GFV_Y_SIZE; y += PIXEL_SIZE) {
+    for (int x = 0; x < GFV_X_SIZE; x += PIXEL_SIZE) {
       put_pixel(x, y, 0xFF000000 + 0x00010101 * f[i]);
       ++i;
     }
   }
   
-  simFlush();
+  gfvFlush();
 }
 
 
